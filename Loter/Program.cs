@@ -120,8 +120,12 @@ namespace teste
                     foreach (var itens in resultados)
                         concurso.Add(Convert.ToInt32(itens));
 
-                    listaSorteiosNum.Add(concurso);
+                    GeraListaSorteios geraListaSorteios = new GeraListaSorteios();
+                    geraListaSorteios.ListaSorteio = concurso;
+                    geraListaSorteios.Sorteio = counter;
+                    listaSorteiosNum.Add(geraListaSorteios);
                     concurso = new List<int>();
+                    counter--;
                 }
 
                 foreach (var item in listaSorteiosNum)
@@ -130,13 +134,14 @@ namespace teste
                     {
                         if (x == 100)
                         {
-                            if (item.Contains(00))
+                            if (item.ListaSorteio.Contains(00))
                                 arrayDezenas[x - 1].quantidade++;
                         }
-                        if (item.Contains(x))
+                        if (item.ListaSorteio.Contains(x))
                             arrayDezenas[x - 1].quantidade++;
                     }
                 }
+
 
                 int posicao = 1;
                 foreach (var print in arrayDezenas.OrderByDescending(x => x.quantidade))
@@ -228,14 +233,18 @@ namespace teste
                         //if (sessionGames == 1) VarrerSorteios(listaSorteiosNum);
                     }
                     #endregion
-
                     #region LOTOFACIL
 
                     else if (gameSelect == lotoFacil)
                     {
                         bool validar = false;
-                        if (sessionGames == 1) VarrerSorteiosLotofacil(listaSorteiosNum);
+                        if (sessionGames == 1)
+                        {
+                            VarrerSorteiosLotofacil(listaSorteiosNum);
+                            //VerificarIgualdadeSorteios(listaSorteiosNum, testeQtd);
+                        }
 
+                        int counterListaSugestao = 1;
                         while (listasugestao.Count() < gamesQt)
                         {
                             GerarSugestaoLotofacil(sugestao, numerator, numerosSequenciais);
@@ -244,10 +253,10 @@ namespace teste
                             contSeq = 0;
                             foreach (var teste in listaSorteiosNum)
                             {
-                                for (int i = 1; i < teste.Count; i++)
+                                for (int i = 1; i < teste.ListaSorteio.Count; i++)
                                 {
-                                    int num = teste[i];
-                                    int nextNum = teste[i - 1];
+                                    int num = teste.ListaSorteio[i];
+                                    int nextNum = teste.ListaSorteio[i - 1];
                                     if (num != nextNum + 1)
                                         numerosSequenciais = 0;
                                     else
@@ -259,12 +268,13 @@ namespace teste
                                 contSeq++;
                             }
 
-                            if (!listasugestao.Contains(sugestao) && !VerificarDuplicidadeLotoFacil(sugestao, listaSorteiosNum, listaSorteios, testeQtd) && !validar)
+                            if (!listasugestao.Contains(sugestao) && !VerificarDuplicidadeLotoFacil(counterListaSugestao, sugestao, listaSorteiosNum, listaSorteios, testeQtd) && !validar)
                             {
                                 listasugestao.Add(sugestao);
                             }
                             sugestao = new List<int>();
                             listSequenciais2 = new List<int>();
+                            counterListaSugestao++;
                         }
 
                         Console.Write("\n");
@@ -282,7 +292,6 @@ namespace teste
                     }
 
                     #endregion
-
                     #region MEGASENA
                     else if (gameSelect == megaSena)
                     {
@@ -458,7 +467,7 @@ namespace teste
         private static bool VerificaPar(List<Lotofacil> listaPares, int counterSorteios, int counterListaSugestao)
         {
             var parComp = new Lotofacil(counterSorteios, counterListaSugestao);
-            foreach(var par in listaPares)
+            foreach (var par in listaPares)
             {
                 if (par.Equals(parComp))
                     return true;
@@ -557,31 +566,84 @@ namespace teste
         }
 
         #region lotoFacil
-        static bool VerificarDuplicidadeLotoFacil(List<int> sugestao, List<dynamic> listaSorteiosNum, List<string> listaSorteios, int testeQtd)
+
+        static void VerificarIgualdadeSorteios(List<dynamic> listaSorteiosNum, int testeQtd)
         {
-            var listaTeste = new List<ListaSugestao>();
-            int counterListaSugestao = 0;
+            Console.Write("------- Começo da Lista de Duplicidade ------- \n");
+            int counterSorteios = 0;
+            List<Dezenas> sorteioPares = new List<Dezenas>();
+
+            foreach (var listSort in listaSorteiosNum)
+            {
+                var listaSugAux = new List<int>();
+                int contIgual = 0;
+
+                foreach (var listSort2 in listaSorteiosNum)
+                {
+                    if ((listSort.Sorteio != listSort2.Sorteio) &&
+                        (!sorteioPares.Contains(new Dezenas { dezena = listSort.Sorteio, quantidade = listSort2.Sorteio })
+                        && !sorteioPares.Contains(new Dezenas { dezena = listSort2.Sorteio, quantidade = listSort.Sorteio })))
+                    {
+                        for (int v = 0; v < 15; v++)
+                        {
+                            if (listSort2.ListaSorteio.Contains(listSort.ListaSorteio[v]))
+                            {
+                                listaSugAux.Add(listSort.ListaSorteio[v]);
+                                contIgual++;
+                            }
+                        }
+                        if (contIgual >= testeQtd)
+                        {
+                            var parSorteio = new Dezenas { dezena = listSort.Sorteio, quantidade = listSort2.Sorteio };
+                            sorteioPares.Add(parSorteio);
+                            //Console.Write("\n");
+                            //Console.WriteLine(listSort.Sorteio + " = " + listSort2.Sorteio);
+                            //for (int p = 0; p < listaSugAux.Count(); p++)
+                            //{
+                            //    Console.Write(listaSugAux[p]);
+                            //    if (p < listaSugAux.Count() - 1)
+                            //        Console.Write(" , ");
+                            //}
+                            //Console.Write("\n");
+                            counterSorteios++;
+                        }
+                        contIgual = 0;
+                        listaSugAux = new List<int>();
+                    }
+                }
+            }
+            sorteioPares.OrderBy(p => p.dezena).ToList();
+            foreach (var sort in sorteioPares)
+                Console.WriteLine("\n " + sort.dezena + " = : " + sort.quantidade);
+            Console.WriteLine("\n" + "-------Total de iguais: " + counterSorteios + " -------");
+            Console.WriteLine("------- Fim da Lista de Duplicidade ------- \n");
+        }
+
+        static bool VerificarDuplicidadeLotoFacil(int counterListaSugestao, List<int> sugestao, List<dynamic> listaSorteiosNum, List<string> listaSorteios, int testeQtd)
+        {
             int contIgual = 0;
             var listaSugAux = new List<int>();
 
-            //foreach (var lista in listasugestao)
-            //{
             int counterSorteios = 0;
             foreach (var listSort in listaSorteiosNum)
             {
                 for (int v = 0; v < 15; v++)
                 {
-                    if (sugestao.Contains(listSort[v]))
+                    if (sugestao.Contains(listSort.ListaSorteio[v]))
                     {
-                        listaSugAux.Add(listSort[v]);
+                        listaSugAux.Add(listSort.ListaSorteio[v]);
                         contIgual++;
                     }
                 }
                 if (contIgual >= testeQtd)
                 {
-                    Console.Write("Sugestão: " + counterListaSugestao + " --*-- igual => " + contIgual + " --*-- " + (counterSorteios) + " --*-- " + listaSorteios[counterSorteios] + "\n");
+                    Console.Write("Sugestão: " + counterListaSugestao + " --*-- igual => " + contIgual + " --*-- " + (listSort.Sorteio) + " --*-- " + listaSorteios[counterSorteios] + "\n");
                     for (int p = 0; p < listaSugAux.Count(); p++)
-                        Console.Write(listaSugAux[p] + " , ");
+                    {
+                        Console.Write(listaSugAux[p]);
+                        if (p < listaSugAux.Count() - 1)
+                            Console.Write(" , ");
+                    }
                     Console.Write("\n\n");
                     return true;
                 }
@@ -590,8 +652,6 @@ namespace teste
                 listaSugAux = new List<int>();
                 counterSorteios++;
             }
-            counterListaSugestao++;
-            //}
             return false;
         }
 
@@ -641,18 +701,18 @@ namespace teste
             {
                 for (int i = 0; i < 15; i++)
                 {
-                    if (listSorte[i] < 10)
+                    if (listSorte.ListaSorteio[i] < 10)
                         menorTemp.qtdDezPadrao++;
-                    else if (listSorte[i] >= 10 && listSorte[i] < 20)
+                    else if (listSorte.ListaSorteio[i] >= 10 && listSorte.ListaSorteio[i] < 20)
                         medioTemp.qtdDezPadrao++;
-                    else if (listSorte[i] >= 20)
+                    else if (listSorte.ListaSorteio[i] >= 20)
                         maiorTemp.qtdDezPadrao++;
 
-                    Console.Write(listSorte[i]);
-                    if (i < 14) Console.Write(",");
+                    //Console.Write(listSorte.ListaSorteio[i]);
+                    //if (i < 14) Console.Write(",");
                 }
 
-                Console.Write(" *-- (Menor: " + menorTemp.qtdDezPadrao + " >= Médio: " + medioTemp.qtdDezPadrao + " >= Maior: " + maiorTemp.qtdDezPadrao + ") --*\n");
+                //Console.Write(" *-- (Menor: " + menorTemp.qtdDezPadrao + " >= Médio: " + medioTemp.qtdDezPadrao + " >= Maior: " + maiorTemp.qtdDezPadrao + ") --*\n");
                 genList[0].qtdDezPadrao += menorTemp.qtdDezPadrao;
                 genList[1].qtdDezPadrao += medioTemp.qtdDezPadrao;
                 genList[2].qtdDezPadrao += maiorTemp.qtdDezPadrao;
@@ -669,9 +729,9 @@ namespace teste
                 testeDois.Add(testeUm);
             }
 
-            Console.WriteLine(genList[0].nomeJogo + " total: " + genList[0].qtdDezPadrao + " _______ " + genList[0].qtdDezPadrao / listaSorteiosNum.Count());
-            Console.WriteLine(genList[1].nomeJogo + " total: " + genList[1].qtdDezPadrao + " _______ " + genList[1].qtdDezPadrao / listaSorteiosNum.Count());
-            Console.WriteLine(genList[2].nomeJogo + " total: " + genList[2].qtdDezPadrao + " _______ " + genList[2].qtdDezPadrao / listaSorteiosNum.Count());
+            //Console.WriteLine(genList[0].nomeJogo + " total: " + genList[0].qtdDezPadrao + " _______ " + genList[0].qtdDezPadrao / listaSorteiosNum.Count());
+            //Console.WriteLine(genList[1].nomeJogo + " total: " + genList[1].qtdDezPadrao + " _______ " + genList[1].qtdDezPadrao / listaSorteiosNum.Count());
+            //Console.WriteLine(genList[2].nomeJogo + " total: " + genList[2].qtdDezPadrao + " _______ " + genList[2].qtdDezPadrao / listaSorteiosNum.Count());
         }
         #endregion
         static void VarrerSorteios(List<dynamic> listaSorteiosNum)
