@@ -308,7 +308,7 @@ namespace teste
                             }
                             sugestao.Sort();
 
-                            VerificarDuplicidadeMega(sugestao, listaSorteiosNum, listaSorteios, testeQtd, numerator);
+                            //VerificarDuplicidadeMega(sugestao, listaSorteiosNum, listaSorteios, testeQtd, numerator);
 
                             for (int i = 1; i < sugestao.Count; i++)
                             {
@@ -339,7 +339,10 @@ namespace teste
                         {
 
                             for (int p = 0; p < item.Count(); p++)
-                                Console.Write(item[p] + ",");
+                            {
+                                Console.Write(item[p]);
+                                if (item.Count - 1 > p) Console.Write(",");
+                            }
                             Console.Write("\n\n");
                         }
                     }
@@ -377,7 +380,7 @@ namespace teste
                                 contSeq++;
                             }
 
-                            if (!listasugestao.Contains(sugestao) && VerificarDuplicidade(sugestao, listaSorteiosNum, listaSorteios, testeQtd, numerator))
+                            if (!listasugestao.Contains(sugestao))// && VerificarDuplicidade(sugestao, listaSorteiosNum, listaSorteios, testeQtd, numerator))
                             {
                                 listasugestao.Add(sugestao);
                             }
@@ -670,13 +673,13 @@ namespace teste
 
                 //for (int i = 1; i < sugestao.Count; i++)
                 //{
-                //    int num = sugestao[i];
-                //    int nextNum = sugestao[i - 1];
-                //    if (num != nextNum + 1)
+                //    int num = sugestao[i - 1];
+                //    int nextNum = sugestao[i];
+                //    if ((num + 1) != nextNum)
                 //        numerosSequenciais = 0;
                 //    else
                 //        numerosSequenciais++;
-                //    if (numerosSequenciais > 6)
+                //    if (numerosSequenciais > 5)
                 //    {
                 //        sugestao.Remove(num);
                 //        i = 0;
